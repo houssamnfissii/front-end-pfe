@@ -4,6 +4,43 @@
     border-bottom: 2.5rem;
 
 }
+.tour__content .imgpricipal{
+    width: 1000px;
+    height: 480px;
+    margin-bottom: 5px;
+}
+
+.tour__content .img{
+    width: 1000px;
+    height: 100px;
+}
+
+@media (max-width: 768px) {
+  /* For tablets and smaller screens */
+  .tour__content .imgpricipal{
+    width: 100%;
+    height: 400px;
+  }
+  
+  .tour__content .img{
+    width: 200px;
+    height: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* For phones */
+  .tour__content .imgpricipal{
+    width: 100%;
+    height: 200px;
+  }
+  
+  .tour__content .img{
+    width: 300px;
+    height: 100%;
+  }
+}
+
 
 .tour__info , .tour__reviews{
     border-radius: 0.5rem;
@@ -86,7 +123,7 @@
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 50px;
-   object-fit: cover;
+    object-fit: cover;
 }
 .user_reviews{
     font-size: 1rem;

@@ -1,9 +1,21 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Slider from 'react-slick'
-import ava01 from '../../assets/images/ava-1.jpg'
-import ava02 from '../../assets/images/ava-2.jpg'
-import ava03 from '../../assets/images/ava-3.jpg'
+import axios from 'axios'
 export default function Testimonials() {
+  const [testimonials, setTestimonials] = useState([]);
+
+  useEffect(() => {
+    async function fetchTestimonials() {
+      try {
+        const response = await axios.get('http://localhost:8000/api/getReviewsTopRat');
+        setTestimonials(response.data);
+      } catch (error) {
+        console.error('Error fetching testimonials:', error);
+      }
+    }
+
+    fetchTestimonials();
+  }, []);
   const settings={
     dots: true,
     infinite: true,
@@ -11,13 +23,13 @@ export default function Testimonials() {
     speed: 1000,
     swipeToSlices: true,
     autoplaySpeed: 2000,
-    slidesToShow: 3,
+    slidesToShow: 1,
 
     responsive: [
       {
         breakpoint: 992,
         settings: {
-          slidesToShow: 2,
+          slidesToShow: 1,
           slidesToScroll: 1,
           infinite: true,
           dots: true
@@ -34,76 +46,18 @@ export default function Testimonials() {
   }
   return (
     <Slider {...settings}>
-        <div className='testimonial py-4 px-3'>
-            <p>
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-            </p>
-            <div className='d-flex align-items-center gap-4 mt-3'>
-                <img src={ava01}  className='w-25 h-25 rounded-2'alt="" />
-                <div>
-                  <h6 className='mb-0 mt-3 '>Houssam Nfissi</h6>
-                  <p>Customer</p>
-                </div>
-            </div>
-        </div>
-        <div className='testimonial py-4 px-3'>
-            <p>
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-            </p>
-            <div className='d-flex align-items-center gap-4 mt-3'>
-                <img src={ava02}  className='w-25 h-25 rounded-2'alt="" />
-                <div>
-                  <h6 className='mb-0 mt-3 '>malak Nfissi</h6>
-                  <p>Customer</p>
-                </div>
-            </div>
-        </div>
-        <div className='testimonial py-4 px-3'>
-            <p>
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-            </p>
-            <div className='d-flex align-items-center gap-4 mt-3'>
-                <img src={ava03}  className='w-25 h-25 rounded-2'alt="" />
-                <div>
-                  <h6 className='mb-0 mt-3 '>Houssam Nfissi</h6>
-                  <p>Customer</p>
-                </div>
-            </div>
-        </div>
-        <div className='testimonial py-4 px-3'>
-            <p>
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-            </p>
-            <div className='d-flex align-items-center gap-4 mt-3'>
-                <img src={ava01}  className='w-25 h-25 rounded-2'alt="" />
-                <div>
-                  <h6 className='mb-0 mt-3 '>fouad Nfissi</h6>
-                  <p>Customer</p>
-                </div>
-            </div>
+    {testimonials.map((testimonial, index) => (
+      <div key={index} className='testimonial py-4 '>
+        <p>{testimonial.body}</p>
+        <div className='d-flex align-items-center gap-4 mt-3'>
+          <img src={testimonial.client.image} className='w-16 h-16 rounded-2' alt='' />
+          <div>
+            <h6 className='mb-0 mt-3'>{testimonial.client.first_name} {testimonial.client.last_name}</h6>
+            <p>Client</p>
           </div>
-        <div className='testimonial py-4 px-3'>
-            <p>
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-                lorem ipsum dolor sit amet, consectetur adip
-            </p>
-            <div className='d-flex align-items-center gap-4 mt-3'>
-                <img src={ava02}  className='w-25 h-25 rounded-2'alt="" />
-                <div>
-                  <h6 className='mb-0 mt-3 '>fouad Nfissi</h6>
-                  <p>Customer</p>
-                </div>
-            </div>
         </div>
-    </Slider>
+      </div>
+    ))}
+  </Slider>
   )
 }

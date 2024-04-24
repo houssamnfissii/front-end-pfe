@@ -1,15 +1,15 @@
 
 
-
-
 .tour__img img{
     width: 100%;
     border-radius: 5px 5px 0 0;
+    height: 240px; /* Set a fixed height */
 }
 
 .card{
     border: none !important;
     box-shadow: rgba(0, 0, 0, 0.2) 0px 18px 50px -10px;
+    height: 380px; /* Set a fixed height */
 }
 
 .tour__img{
@@ -43,12 +43,13 @@
     font-size: 0.9rem;
 
 }
-.tour__rating i, .tour__location i {
+.tour__rating , .tour__location i {
     font-size: 1rem;
 }
 .tour__title{
     margin-top: 1rem;
     font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
 }
 .tour__title a{
@@ -67,7 +68,7 @@
 .card__bottom h5 span{
     font-weight: 500;
     color: var(--text-color);
-    font-size: 0.8rem;
+    font-size: 0.7rem;
 }
 
 .booking__btn{

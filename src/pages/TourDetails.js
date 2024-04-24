@@ -1,122 +1,309 @@
-import React, { useRef, useState } from 'react'
-import '../styles/tour-details.css';
-import {Container ,Row , Col,Form , ListGroup } from 'reactstrap'
-import { useParams } from 'react-router-dom';
-import tourData from '../assets/data/tours'
-import calculateAvgRating from '../utils/avgRating';
-import avatar from '../assets/images/avatar.jpg'
-import Booking from '../components/Booking/Booking';
+import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import "../styles/tour-details.css";
+import { useParams } from "react-router-dom";
+import calculateAvgRating from "../utils/avgRating";
+import { Container, Row, Col, Form, ListGroup } from "reactstrap";
+import TimeAgo from "../components/format-date/TimeAgo";
+import Booking from "../components/Booking/Booking";
+
 export default function TourDetails() {
-  const {id} =useParams()
-  
-  const tour = tourData.find(t => t.id === id)
-  
+  const { id } = useParams();
 
-  const {title,city, photo ,price ,address ,featured,reviews,maxGroupSize,distance,desc} = tour;
-  const {totalRating ,avgRating} = calculateAvgRating(reviews)
+  const [tourDetails, setTourDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const reviewMsgRef = useRef("");
+  const [tourRating, setTourRating] = useState(null);
+  const [hoveredRating, setHoveredRating] = useState(0); 
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const options={ day:'numeric',month:'long',year:'numeric' }
 
-  const reviewMsgRef=useRef('')
-  const [tourRating,setTourRating]=useState(null)
-
-  // submit request to the server
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const reviewMsg=reviewMsgRef.current.value
-    console.log(reviewMsg + tourRating)
-    if(reviewMsg){
-      const newReview={
-        name:reviewMsgRef.current.value,
-        rating:tourRating
+  useEffect(() => {
+    const fetchTourDetails = async () => {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/tours/${id}`
+        );
+        setTourDetails(response.data.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setLoading(false);
       }
-      reviews.push(newReview)
-      reviewMsgRef.current.value=''
-      setTourRating(null)
+    };
+
+    fetchTourDetails();
+  }, [id]);
+
+  const addReview = async () => {
+    try {
+      await fetch("http://127.0.0.1:8000/api/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          client_id: 1, //auth id
+          offer_id: tourDetails.offer.id,
+          rating: tourRating,
+          body: reviewMsgRef.current.value,
+        }),
+      })
+        .then((resp) => resp.json())
+        .then((newQuestion) => console.log(newQuestion));
+    } catch (error) {
+      console.error("Error adding review:", error);
     }
+  };
+
+  useEffect(() => {
+    if (tourDetails && tourRating && reviewMsgRef) {
+      addReview();
+    }
+  }, [tourDetails, tourRating, reviewMsgRef]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    addReview();
+    reviewMsgRef.current.value = "";
+    setTourRating(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center gap-2">
+        <h2 className="text-3xl font-bold text-indigo-700">Loading Tours</h2>
+        <div className="w-5 h-5 rounded-full animate-pulse bg-indigo-700"></div>
+        <div className="w-5 h-5 rounded-full animate-pulse bg-indigo-700"></div>
+        <div className="w-5 h-5 rounded-full animate-pulse bg-indigo-700"></div>
+      </div>
+    );
   }
+
+  if (!tourDetails) {
+    return <div>No data found</div>;
+  }
+
+  const {
+    offer,
+    cities,
+    activities,
+    transports,
+    tour_title,
+    desc,
+    staffs,
+    nbr_people,
+    price_per_person,
+    create_at,
+    end_date,
+    start_date,
+  } = tourDetails;
+
+  const { totalRating, avgRating } = calculateAvgRating(offer.reviews);
+  const tourImage =
+    offer.images.length > 0 && offer.images[0].url ? offer.images[0].url : "";
+
+  const reviewsPerPage = 3;
+  const totalPages = Math.ceil(offer.reviews.length / reviewsPerPage);
+  const reviewsToShow = offer.reviews.slice(
+    currentPage * reviewsPerPage,
+    (currentPage + 1) * reviewsPerPage
+  );
+
   return (
     <section>
       <Container>
         <Row>
-          <Col  lg="8" >
-            <div className='tour__content'>
-               <img src={photo} alt=''/>
-               <div className='tour__info'>
-                  <h2 className='text-3xl font-bold mb-4'>{title}</h2>
-                  <div className='d-flex align-items-center gap-5'>
-                  <span className='tour__rating d-flex align-align-items-center gap-1'>
-                    <i class="ri-star-fill" style={{ color:'var(--secondary-color)' }}></i> {calculateAvgRating===0 ? null : avgRating} 
-                    {totalRating===0 ? 'Not rated' : 
-                            <span>({reviews?.length})</span>}
-                      
-                    </span>
-                      <span>
-                      <i class="ri-map-pin-fill"></i> {address}
+          <Col lg="8">
+            <div className="tour__content">
+              <img
+                src={tourImage}
+                className="w-full h-auto md:w-1000 md:h-600"
+                alt=""
+              />
+              <div className="tour__info">
+                <h2 className="text-3xl font-bold mb-4">{tour_title}</h2>
+                <div className="flex flex-wrap items-center gap-5">
+                  <span className="tour__rating flex items-center gap-1">
+                    <i
+                      className="ri-star-fill"
+                      style={{ color: "var(--secondary-color)" }}
+                    ></i>{" "}
+                    {calculateAvgRating === 0 ? null : avgRating}
+                    {totalRating === 0 ? (
+                      "Not rated"
+                    ) : (
+                      <span>({offer.reviews?.length})</span>
+                    )}
+                  </span>
+                  <span>
+                    <i className="ri-map-pin-fill"></i>{" "}
+                    {Object.values(cities).map((city, index) => (
+                      <span key={index}>
+                        {city}
+                        {index < Object.values(cities).length - 1 && (
+                          <i className="ri-arrow-right-circle-fill "></i>
+                        )}
                       </span>
+                    ))}
+                  </span>
+                </div>
+                <div className="tour__extra-details">
+                  <span className="text-xs sm:text-sm lg:text-base">
+                    <i className="ri-wallet-3-line"></i> {price_per_person}DH
+                    /per person
+                  </span>
+                  <span className="text-xs sm:text-sm lg:text-base">
+                    <i className="ri-group-line"></i> {nbr_people} people
+                  </span>
+                </div>
+                <div className="tour__extra-details">
+                  <span className="text-xs sm:text-sm lg:text-base">
+                    <i class="ri-calendar-line"></i> Start : {start_date}
+                  </span>
+                  <span className="text-xs sm:text-sm lg:text-base">
+                    <i class="ri-calendar-check-line"></i>
+                    End : {end_date}
+                  </span>
+                </div>
+                <div className="tour__extra-details">
+                  <span className="text-xs sm:text-sm lg:text-base">
+                  <i class="ri-bus-wifi-line"></i> {transports[0].type? transports[0].type:''}
+                  </span>
+                  <span className="text-xs sm:text-sm lg:text-base">
+                  <i class="ri-user-3-line"></i>
+                    {staffs[0].role? staffs[0].role:'' }
+                  </span>
+                </div>
+
+                <h5 className="text-xl font-bold mb-4">Description</h5>
+                <p>{desc}</p>
+              </div>
+              <div className="tour__info">
+                <h5 className="text-xl font-bold mb-4">Activity</h5>
+                <div className="tour__activities">
+                  <ol>
+                    {activities.map((activity, index) => (
+                      <li key={index}>
+                        <h3 className="text-xl text-green-500">
+                          <i class="ri-check-double-line"></i>
+                          {activity.name}
+                        </h3>
+                        <ul>
+                          <p>{activity.description}</p>
+                        </ul>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+              <div className="tour__info">
+                <h5 className="text-xl font-bold mb-4">Host Informations</h5>
+                <div className="tour__activities">
+                <span className="text-xs sm:text-sm lg:text-base">
+                <i class="ri-user-line"></i> {offer.host.first_name} {offer.host.last_name}
+                  </span>
+                  <span className="text-xs sm:text-sm lg:text-base">
+                  <i class="ri-phone-line"></i>
+                    {offer.host.telephone}
+                  </span>
+                </div>
+              </div>
+
+              <div className="tour__reviews mt-4">
+                <h4 className="text-xl font-bold mb-4">
+                  ({offer.reviews?.length} reviews)
+                </h4>
+                {/* Hide this form when user submits a review */}
+                <Form onSubmit={handleSubmit}>
+                  <div className="d-flex align-align-items-center gap-3 mb-4 rating__group ">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <span
+                        key={value}
+                        onMouseEnter={() => setHoveredRating(value)}
+                        onMouseLeave={() => setHoveredRating(0)}
+                        onClick={() => setTourRating(value)}
+                        style={{ 'fontSize':35 }}
+                      >
+                        
+                        <i
+                         
+                          className={
+                            value <= (hoveredRating || tourRating)
+                              ? "ri-star-s-fill"
+                              : "ri-star-s-line"
+                          }
+                          style={{ color: value <= hoveredRating ? "yellow" : "" }}
+                        ></i>
+                      </span>
+                    ))}
                   </div>
-                  <div className='tour__extra-details'>
-                    <span><i class="ri-map-pin-line"></i> {city}</span>
-                    <span><i class="ri-wallet-3-line"></i> {price}DH /per person</span>
-                    <span><i class="ri-pin-distance-line"></i>{distance}k/m</span>
-                    <span><i class="ri-group-line"></i> {maxGroupSize} people</span>
+                  <div className="review__input">
+                    <input
+                      type="text"
+                      placeholder="share your thoughts"
+                      ref={reviewMsgRef}
+                      required
+                    />
+                    <button
+                      className="btn primary__btn text-white"
+                      type="submit"
+                    >
+                      Submit
+                    </button>
                   </div>
-                  <h5 className='text-xl font-bold mb-4'>Description</h5>
-                  <p>{desc}</p>
-               </div>
+                </Form>
 
-               {/* tour reviews section  start */}
-               <div className='tour__reviews mt-4'>
-                 <h4 className='text-xl font-bold mb-4'>({reviews?.length} reviews)</h4>
-                 <Form onSubmit={handleSubmit}>
-                    <div className='d-flex align-align-items-center gap-3 mb-4 rating__group'>
-                         <span onClick={()=>setTourRating(1)}>1 <i class="ri-star-s-fill"></i></span>
-                         <span onClick={()=>setTourRating(2)}>2 <i class="ri-star-s-fill"></i></span>
-                         <span onClick={()=>setTourRating(3)}>3 <i class="ri-star-s-fill"></i></span>
-                         <span onClick={()=>setTourRating(4)}>4 <i class="ri-star-s-fill"></i></span>
-                         <span onClick={()=>setTourRating(5)}>5 <i class="ri-star-s-fill"></i></span>
+                <ListGroup className="user__reviews">
+                  {reviewsToShow?.map((review) => (
+                    <div className="review__item">
+                      {/* <img src={avatar} alt="" /> */}
+
+                      <div className="w-100">
+                        <div className="d-flex align-align-items-center justify-content-between">
+                          <div>
+                            <h5 className="text-sm font-bold ">
+                              {review.client.first_name}
+                            </h5>
+                            {
+                              <span className="text-sm">
+                                {" "}
+                                <TimeAgo timestamp={review.created_at} />
+                              </span>
+                            }
+                          </div>
+                          <span className="d-flex align-items-center">
+                            {review.rating}
+                            <i class="ri-star-fill"></i>
+                          </span>
+                        </div>
+                        <h6> {review.body}</h6>
+                      </div>
                     </div>
-                    <div className='review__input'>
-                        <input  type='text' placeholder='share your thoughts' ref={reviewMsgRef} required/>
-                        <button className='btn primary__btn text-white' type='submit'>Submit</button>
-                    </div>
-                 </Form>
-
-                 <ListGroup className='user__reviews'>
-
-                      {
-                        reviews?.map(review => (
-                         <div className='review__item'>
-                            <img src={avatar} alt="" />
-
-                            <div className='w-100'>
-                              <div className='d-flex align-align-items-center justify-content-between'>
-                                <div>
-                                    <h5  className='text-sm font-bold '>Houssam</h5>
-                                    <p>{new Date('01-18-2024').toLocaleTimeString('en-US', options)}</p>
-
-                                </div>
-                                <span className='d-flex align-items-center'>
-                                   5<i class="ri-star-fill"></i>
-                                </span>
-                              </div>
-                              <h6>Amazing tour</h6>
-                            </div>
-                         </div>
-                        ))
+                  ))}
+                </ListGroup>
+                <div className="pagination">
+                  {[...Array(totalPages).keys()].map((pageNumber) => (
+                    <span
+                      key={pageNumber}
+                      onClick={() => setCurrentPage(pageNumber)}
+                      className={
+                        currentPage === pageNumber ? "active__page" : ""
                       }
-                   
-                 </ListGroup>
-
-               </div>
-               {/* tour reviews section  end */}
+                    >
+                      {pageNumber + 1}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {/* Tour reviews section end */}
             </div>
           </Col>
-          <Col lg='4'>
-              <Booking tour={tour} avgRating={avgRating}/>
+          <Col lg="4">
+            <Booking tour={tourDetails} avgRating={avgRating} />
           </Col>
         </Row>
       </Container>
     </section>
-  )
+  );
 }

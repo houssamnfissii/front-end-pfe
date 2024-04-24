@@ -1,20 +1,29 @@
+// tourSlice.js
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the initial state
 const initialState = {
   tours: [],
+  tourDetails: null,
   status: 'idle',
   error: null,
 };
 
-// Define the asynchronous thunk to fetch tours
-export const fetchTours = createAsyncThunk('tours/fetchTours', async () => {
-  const response = await axios.get('http://127.0.0.1:8000/api/offres/tours');
-  return response.data.data; // Assuming the tours data is under the 'data' key
+// Define the async thunk to fetch tours
+const fetchTours = createAsyncThunk('tours/fetchTours', async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/tours');
+    return response.data.data;
+  } catch (error) {
+    throw error;
+  }
 });
 
-// Create the TourSlice
+
+
+// Create a tour slice
 const tourSlice = createSlice({
   name: 'tours',
   initialState,
@@ -31,13 +40,12 @@ const tourSlice = createSlice({
       .addCase(fetchTours.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
-      });
+      })
   },
 });
 
-// Export the action creators and reducer
-export const selectAllTours = (state) => state.tours.tours;
-export const selectTourStatus = (state) => state.tours.status;
-export const selectTourError = (state) => state.tours.error;
-
+// Export the reducer
 export default tourSlice.reducer;
+
+// Export the async thunks
+export { fetchTours};

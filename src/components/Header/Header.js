@@ -1,82 +1,99 @@
-import React  from 'react'
-import {Container,Row,Button} from 'reactstrap'
-import { NavLink ,Link} from 'react-router-dom'
-import logo from '../../assets/images/logo.png'
-import './header.css'
-import { useEffect, useRef } from 'react'
-const nav__links=[
-  {
-    path:'/home',
-    display:'Home'
-  },
-  {
-    path:'/hotels',
-    display:'Hotels'
-  },
-  {
-    path:'/tours',
-    display:'Tours'
-  },
-  {
-    path:'/cars',
-    display:'Cars'
-  },
-  {
-    path:'/restorents',
-    display:'Restorents'
-  },
- 
-]
-export default function Header() {
-  const headerRef = useRef(null)
-  const stickyHeaderFunc = () => {
-     window.addEventListener('scroll', ()=>{
-      if(document.body.scrollTop>80 || document.documentElement.scrollTop >80){
-        headerRef.current.classList.add('sticky__header')
-      }else{
-        headerRef.current.classList.remove('sticky__header')
-      }
-     })
-  }
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Button } from 'reactstrap';
+import { NavLink, Link } from 'react-router-dom';
+import logo from '../../assets/images/logo.png';
+import './header.css';
 
-  useEffect(()=>{
-    stickyHeaderFunc()
-    return window.removeEventListener('scroll', stickyHeaderFunc)
-  },[])
+const nav__links = [
+  {
+    path: '/home',
+    display: 'Home'
+  },
+  {
+    path: '/hotels',
+    display: 'Hotels'
+  },
+  {
+    path: '/tours',
+    display: 'Tours'
+  },
+  {
+    path: '/cars',
+    display: 'Cars'
+  },
+  {
+    path: '/restaurants',
+    display: 'Restaurants' // Corrected typo in the path name
+  }
+];
+
+export default function Header() {
+  const [isSticky, setIsSticky] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
+  const handleScroll = () => {
+    if (window.scrollY > 80) {
+      setIsSticky(true);
+    } else {
+      setIsSticky(false);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const toggleNav = () => {
+    setIsNavOpen(!isNavOpen);
+  };
+
   return (
-    <header className="header" ref={headerRef}>
+    <header className={`header ${isSticky ? 'sticky__header' : ''}`}>
       <Container>
         <Row>
-          <div className="nav__wrapper d-flex align-items-center justify-content-between">
-              {/* =logo= */}
-              <div className='logo'>
-                <img src={logo} alt="logo" />
+          <div className="nav__wrapper flex flex-wrap items-center justify-between">
+            {/* Logo */}
+            <div className="logo">
+              <img src={logo} alt="logo" className="h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28" />
+            </div>
+
+            {/* Navigation */}
+            <div className={`navigation ${isNavOpen ? 'block' : 'hidden'} sm:block md:block lg:block xl:block mt-4 sm:mt-0 md:mt-0 lg:mt-0 xl:mt-0`}>
+              <ul className="menu flex flex-col sm:flex-row md:flex-row lg:flex-row xl:flex-row gap-5">
+                {nav__links.map((link, index) => (
+                  <li className="nav__item" key={index}>
+                    <NavLink
+                      to={link.path}
+                      activeClassName="active__link"
+                      exact={true}
+                      className="nav__link"
+                      onClick={() => setIsNavOpen(false)}
+                    >
+                      {link.display}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="nav__right flex items-center gap-4">
+              <div className="nav__btns flex items-center gap-4">
+                <Button className="btn secondary__btn">
+                  <Link to={'/login'}>Login</Link>
+                </Button>
+                <Button className="btn primary__btn">
+                  <Link to={'/register'}>Register</Link>
+                </Button>
               </div>
-              {/* =logo end= */}
-              {/* =menu start= */}
-                  <div className='navigation'>
-                    <ul className='menu d-flex align-items-center gap-5'>
-                  {nav__links.map((link,index)=>(
-                    <li className="nav__item" key={index}>
-                      <NavLink to={link.path} className={navClass=>navClass.isActive ? 'active__link' :''}>{link.display}</NavLink>
-                    </li>
-                  ))}
-                    </ul>
-                  </div>
-              {/* =menu start= */}
-              <div className='nav__right d-flex align-items-center gap-4'>
-                <div className='nav__btns d-flex align-items-center gap-4'>
-                  <Button className='btn secondary__btn'><Link to={'/login'}>Login</Link></Button>
-                  <Button className='btn primary__btn'><Link to={'/Register'}>Register</Link></Button>
-                </div>
-                <span className='mobile__menu'>
-              <i class="ri-menu-3-line"></i>
-              </span>
-              </div>
-             
+
+
+            </div>
           </div>
         </Row>
       </Container>
+   
     </header>
-  )
+  );
 }
