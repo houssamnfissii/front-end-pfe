@@ -13,6 +13,7 @@ import HotelDetails from '../pages/HotelDetails'
 import Restaurant from '../pages/Restaurant'
 import RestaurantDetails from '../pages/RestaurantDetails'
 import SlideClient from '../pages/SlideClient'
+import RegisterHosterForm from '../pages/HostRegistration'
 
 export default function Router() {
   return (
@@ -29,7 +30,8 @@ export default function Router() {
       <Route path="/restaurants/:id" element={<RestaurantDetails/>} />
       <Route path="/login" element={<Login/>} />
       <Route path="/register" element={<Register/>} />
-      <Route path="/slide" element={<SlideClient/>} />
+      <Route path="/RegisterHosterForm" element={<RegisterHosterForm/>} />
+    
      
     </Routes>
   )
